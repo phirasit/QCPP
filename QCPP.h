@@ -13,12 +13,12 @@ class Quantum {
     
     private:
 
-
     	size_t size;
     	std::vector< std::complex<double> > data, buffer;
 
     	void checkStatus(void);
-
+    	void Cnot(size_t, size_t);
+    	
     public:
 
     	void addQubits(size_t);
@@ -27,10 +27,18 @@ class Quantum {
     	void Hadamard(size_t);
     	template<typename... Args> void Hadamard(size_t, Args...);
     	void Hadamard(std::vector<size_t>);
+    	void HadamardRange(size_t, size_t);
 
-    	double get_probability(size_t);
-    	size_t get_state(void);
-    	std::complex<double> get_phase(size_t);
+    	void Cnot(std::vector<size_t>, size_t);
+    	void Cnot(std::vector<size_t>);
+    	void CnotRange(size_t, size_t, size_t);
+    	void Toffoli(std::vector<size_t> , size_t);
+    	void Toffoli(std::vector<size_t>);
+    	void ToffoliRange(size_t, size_t, size_t);
+
+    	double getProbability(size_t);
+    	size_t getState(void);
+    	std::complex<double> getPhase(size_t);
 
     	Quantum(size_t = 1u);
     	Quantum(std::vector< std::complex<double> >);
@@ -48,5 +56,6 @@ void Quantum::Hadamard(size_t idx, Args... args) {
 	Hadamard(idx);
 	Hadamard(args...);
 }
+
 
 #endif
