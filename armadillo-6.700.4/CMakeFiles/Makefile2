@@ -78,6 +78,15 @@ CMakeFiles/armadillo.dir/rule: cmake_check_build_system
 armadillo: CMakeFiles/armadillo.dir/rule
 .PHONY : armadillo
 
+# Pre-install relink rule for target.
+CMakeFiles/armadillo.dir/preinstall:
+	$(MAKE) -f CMakeFiles/armadillo.dir/build.make CMakeFiles/armadillo.dir/preinstall
+.PHONY : CMakeFiles/armadillo.dir/preinstall
+
+# Prepare target for install.
+preinstall: CMakeFiles/armadillo.dir/preinstall
+.PHONY : preinstall
+
 # clean rule for target.
 CMakeFiles/armadillo.dir/clean:
 	$(MAKE) -f CMakeFiles/armadillo.dir/build.make CMakeFiles/armadillo.dir/clean

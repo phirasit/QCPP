@@ -96,6 +96,30 @@ libarmadillo.so: libarmadillo.so.6.700.4
 CMakeFiles/armadillo.dir/build: libarmadillo.so
 .PHONY : CMakeFiles/armadillo.dir/build
 
+# Object files for target armadillo
+armadillo_OBJECTS = \
+"CMakeFiles/armadillo.dir/src/wrapper.cpp.o"
+
+# External object files for target armadillo
+armadillo_EXTERNAL_OBJECTS =
+
+CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4: CMakeFiles/armadillo.dir/src/wrapper.cpp.o
+CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4: CMakeFiles/armadillo.dir/build.make
+CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4: /usr/lib/libopenblas.so
+CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4: /usr/lib/liblapack.so
+CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4: CMakeFiles/armadillo.dir/relink.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX shared library CMakeFiles/CMakeRelink.dir/libarmadillo.so"
+	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/armadillo.dir/relink.txt --verbose=$(VERBOSE)
+	$(CMAKE_COMMAND) -E cmake_symlink_library CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4 CMakeFiles/CMakeRelink.dir/libarmadillo.so.6 CMakeFiles/CMakeRelink.dir/libarmadillo.so
+
+CMakeFiles/CMakeRelink.dir/libarmadillo.so.6: CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4
+
+CMakeFiles/CMakeRelink.dir/libarmadillo.so: CMakeFiles/CMakeRelink.dir/libarmadillo.so.6.700.4
+
+# Rule to relink during preinstall.
+CMakeFiles/armadillo.dir/preinstall: CMakeFiles/CMakeRelink.dir/libarmadillo.so
+.PHONY : CMakeFiles/armadillo.dir/preinstall
+
 CMakeFiles/armadillo.dir/requires: CMakeFiles/armadillo.dir/src/wrapper.cpp.o.requires
 .PHONY : CMakeFiles/armadillo.dir/requires
 
