@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <complex>
 #include <cmath>
+#include <cassert>
 #include <functional>
 #include <vector>
 
@@ -13,12 +14,14 @@ class Quantum {
     
     private:
 
-    	size_t size;
+    	size_t _size;
     	std::vector< std::complex<double> > data, buffer;
 
     	void checkStatus(void);
-    	void Cnot(size_t, size_t);
-    	
+
+    	void CnotHashedIdx(size_t, size_t);
+    	template<typename... Args> void CnotHashedIdx(size_t, size_t, Args...);
+
     public:
 
     	void addQubits(size_t);
@@ -29,17 +32,22 @@ class Quantum {
     	void Hadamard(std::vector<size_t>);
     	void HadamardRange(size_t, size_t);
 
+    	template<typename... Args> void Cnot(size_t, Args...);
     	void Cnot(std::vector<size_t>, size_t);
     	void Cnot(std::vector<size_t>);
     	void CnotRange(size_t, size_t, size_t);
+    	template<typename... Args> void Toffoli(size_t, Args...);
     	void Toffoli(std::vector<size_t> , size_t);
     	void Toffoli(std::vector<size_t>);
     	void ToffoliRange(size_t, size_t, size_t);
 
+    	void swap(size_t, size_t);
+
     	double getProbability(size_t);
     	size_t getState(void);
     	std::complex<double> getPhase(size_t);
-
+    	size_t size(void);
+    	
     	Quantum(size_t = 1u);
     	Quantum(std::vector< std::complex<double> >);
     	Quantum(size_t, std::vector< std::pair< size_t, std::complex<double> > >);
@@ -57,5 +65,21 @@ void Quantum::Hadamard(size_t idx, Args... args) {
 	Hadamard(args...);
 }
 
+// apply C-NOT gates to all qubits in hash_val
+template<typename... Args>
+void Quantum::CnotHashedIdx(size_t hash_val, size_t idx, Args... args) {
+	assert(0 <= idx and idx < _size);
+	CnotHashedIdx(hash_val ^ (1 << idx), args...);
+}
+template<typename... Args>
+void Quantum::Cnot(size_t idx, Args... args) {
+	assert(0 <= idx and idx < _size);
+	CnotHashedIdx(1u << idx, args...);
+}
+template<typename... Args>
+void Quantum::Toffoli(size_t idx, Args... args) {
+	assert(0 <= idx and idx < _size);
+	CnotHashedIdx(1u << idx, args...);
+}
 
 #endif
