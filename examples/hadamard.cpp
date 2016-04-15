@@ -20,7 +20,7 @@ int main() {
 
 	// the possibility should be the same
 	for(int i = 0;i < (1 << qubits.size());i++) {
-		std::cout << "Possibility of being " << i << " : " << qubits.getProbability(i) << std::endl;
+		std::cout << "Probabilities of being " << i << " : " << qubits.getProbability(i) << std::endl;
 	}
 
 	// try to observe
