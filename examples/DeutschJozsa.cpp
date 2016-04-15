@@ -63,17 +63,18 @@ int main() {
 		assert(val == 0 or val == 1);
 
 		if(val == 0) {
-			qubits.setPhase(2 * i, prob);
-			qubits.setPhase(2 * i + 1, -prob);
+			qubits.setPhase(2*i, prob);
+			qubits.setPhase(2*i+1, -prob);
 		}else  {
-			qubits.setPhase(2 * i, -prob);
-			qubits.setPhase(2 * i + 1, prob);
+			qubits.setPhase(2*i, -prob);
+			qubits.setPhase(2*i+1, prob);
 		}
 	}
 
 	// pass qubits through hadamard gates again
 	qubits.hadamardRange(1, bit);
 
+	// output every possibility
 	for(int i = 0;i < (1 << qubits.size());i++) {
 		std::cout << "Probability of being " << i << " : " << qubits.getPhase(i) << std::endl;
 	}
