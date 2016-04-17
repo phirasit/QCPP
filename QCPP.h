@@ -14,45 +14,162 @@ class Quantum {
     
     private:
 
+    	class __qubit_index__ {
+	    	public:
+	    		size_t index;
+	    		__qubit_index__(size_t _index) : index(_index) {}
+    	};
+
     	size_t _size;
     	std::vector< std::complex<double> > data, buffer;
 
     	void checkStatus(void);
 
+    	// -- start add qubits header
+    	// add more qubits
+    public:
+    	void addQubits(size_t = 1);
+
+    	// add qubits from a quantum state
+    	void addQubits(Quantum);
+    	// -- end add qubits
+
+    	// -- start hadamard header
+    	// hadamard function using with controlled function
+    	// should not be called directly but passed as parameter
+    public:
+    	void hadamard(__qubit_index__, size_t);
+
+    	// simple hadamard function
+    	void hadamard(size_t);
+
+    	// variadic hadamard function
+    	template<typename... Args> void hadamard(size_t, Args...);
+
+    	// hadamard function with list of indexed
+    	void hadamard(std::vector<size_t>);
+
+    	// hadamard function to every qubits in given range
+    	void hadamardRange(size_t, size_t);
+    	// -- end hadamard header
+
+    	// start controlled function 
+    	// controlled function consider the state of qubits before applying function
+    private:
+    	// controlled function with given hashed indice
+    	template<typename... Args> void controlled(size_t, std::function<void(__qubit_index__, Args...)>);
+
+    	// variadic controlled functions with given hashed indice
+    	template<typename... Args> void controlled(size_t, std::function<void(__qubit_index__, Args...)>, size_t);
+    	template<typename... Args1, typename... Args2> void controlled(size_t, std::function<void(__qubit_index__, Args1...)>, size_t, Args2...);
+
+    public:
+    	// simple controlled (variadic function)
+    	template<typename... Args1, typename... Args2> void controlled(std::function<void(__qubit_index__, Args1...)>, size_t, Args2...);
+
+    	// simple controlled with list of controlled qubits
+    	template<typename... Args> void controlled(std::function<void(__qubit_index__, Args...)>, std::vector<size_t>);
+
+    	// -- start not header
+    	// not function swap current state of qubits
+    public:
+    	// simple not function
+    	// void not(__qubit_index__, size_t);
+    	// -- end not header
+
+    	// -- start phaseShift header
+    	// phase shift shifts amplitude of |1> state
+    	// note : phaseShift pi = phaseFlip
+    public:
+      	// phaseShift function that should be using with controlled 
+    	void phaseShift(__qubit_index__, size_t, double = M_PI);
+
+    	// simple phaseShift function
+    	void phaseShift(size_t, double = M_PI);
+
+    	// simple phaseShift function with list of shifted qubits
+    	void phaseShift(std::vector<size_t>, double = M_PI);
+
+    	// variadic phsaeShift function
+    	template<typename... Args> void phaseShift(size_t, Args..., double = M_PI);
+    	// -- end phaseShift header
+
+    	// -- start phaseFlip header
+    	// phaseFlip inverses the phase of |1> state
     public:
 
-    	void addQubits(size_t);
-    	void addQubits(Quantum);
+    	// phaseFlip function is an alias of phaseShift
+    	const auto& phaseFlip = phaseShift;
+    	// void phaseFlip(__qubit_index__, size_t, double = M_PI);
+    	// void phaseFlip(size_t);
+    	// void phaseFlip(std::vector<size_t>);
+    	// template<typename... Args> void phaseFlip(size_t, Args...);
 
-    	void hadamard(size_t);ZXCj;
-    	template<typename... Args> void hadamard(size_t, Args...);
-    	void hadamard(std::vector<size_t>);
-    	void hadamardRange(size_t, size_t);
+    	// -- end phaseFlip header
 
-    	template<typename...Args> void controlled(std:function<void(size_t)>, size_t, Agrs...);
-    	void controlled(std::function<void(size_t)>, std::vector<size_t>);
+    	// -- setPhase function header
+    	// warning : this function should be used in oracle function only
+    	// this function might corrupt the system 
+    public:
 
-    	void phaseShift(size_t, double = M_PI);
-    	void phaseShift(std::vector<size_t>, double = M_PI);
-    	template<typename... Args> void phaseShift(size_t, Args..., double = M_PI);
-    	void phaseFlip(size_t);
-    	void phaseFlip(std::vector<size_t>);
-    	template<typename... Args> void phaseFlip(size_t, Args...);
-
+    	// simple setPhase function 
     	void setPhase(size_t, std::complex<double>);
-    	void setPhase(std::vector< std::pair< size_t, std::complex<double> > >);
-    	void swap(size_t, size_t);
 
+    	// setPhase with list of queries
+    	void setPhase(std::vector< std::pair< size_t, std::complex<double> > >);
+
+    	// variadic setPhase function
+    	template<typename... Args> void setPhase(size_t, std::complex<double>, Args...);
+
+    	// -- end setPhase header
+
+    	// -- start swap function header
+    	// swap function swaps phase of two qubits
+	public:
+		// swap function for controlled function
+		// template<typename... Args> void swap(std::function<__qubit_index__, Args...>); -undone
+
+		// simple swap function
+    	void swap(size_t, size_t);
+    	// -- end swap function header
+
+    	// -- start response function header
+    public:
+
+    	// get probability of start collapsed to given state
     	double getProbability(size_t);
+
+    	// simulate quantum machenic and output result
     	size_t getState(void);
+
+    	// return phase of given state
     	std::complex<double> getPhase(size_t);
+
+    	// return number of qubits
     	size_t size(void);
 
-    	Quantum(size_t = 1u);
-    	Quantum(std::vector< std::complex<double> >);
-    	Quantum(size_t, std::vector< std::pair< size_t, std::complex<double> > >);
+    	// -- end response function header
 
+    	// -- start constructor funciton header
+    public:
+
+    	// simple constructor
+    	Quantum(size_t = 1u);
+
+    	// constructor with given state of every possibility
+    	// this should use for phenomenones like 'quantum entanglement'
+    	Quantum(std::vector< std::complex<double> >);
+
+    	// constructor with some given state of evey possibility
+    	Quantum(size_t, std::vector< std::pair< size_t, std::complex<double> > >);
+  		// -- end constructor function header
+
+    	// -- start destructor function header
+  	public:
+
+  		// simple destructor
     	~Quantum(void);
+    	// -- end destructor function
 };
 
 
@@ -67,12 +184,13 @@ void Quantum::checkStatus(void) {
 	}
 	assert(abs(prob - 1.0) < 1e-8);
 }
+
 // return number of qubits
 size_t Quantum::size(void) {
 	return _size;
 }
 
-// Initializer
+// Initializers / constructors
 Quantum::Quantum(size_t __size) {
 	if(__size == 0u) return;
 	_size = __size;
@@ -88,6 +206,7 @@ Quantum::Quantum(std::vector< std::complex<double> > _data) {
 	checkStatus();
 }
 Quantum::Quantum(size_t __size, std::vector< std::pair< size_t, std::complex<double> > > _data) {
+
 	Quantum(_size = __size);
 	for(auto& state : _data) {
 		data[state.first] = state.second; 
@@ -127,6 +246,7 @@ double Quantum::getProbability(size_t _state) {
 	return pow(abs(data[_state]), 2.0);
 }
 
+// return phase of given state
 std::complex<double> Quantum::getPhase(size_t _state) {
 	return data[_state];
 }
@@ -144,6 +264,7 @@ size_t Quantum::getState(void) {
 	assert(false);
 }
 
+// -- start hadamard function
 // apply hadamard gate to a qubit
 void Quantum::hadamard(size_t idx) {
 	assert(0 <= idx and idx < (_size));
@@ -174,8 +295,9 @@ void Quantum::hadamardRange(size_t left, size_t right) {
 		hadamard(_idx);
 	}
 }
+// -- end hadamard function
 
-
+// -- start swap function
 // swap 2 qubits' phases
 // this function should be implement by using 3 c-not gates
 void Quantum::swap(size_t idx1, size_t idx2) {
@@ -194,8 +316,9 @@ void Quantum::swap(size_t idx1, size_t idx2) {
 		}
 	}
 }
+// -- end swap function
 
-// begin rotate phase and flip phase functions 
+// -- start phase shift and phase flip functions 
 void Quantum::phaseShift(size_t qubit_idx, double ang) {
 	assert(0 <= qubit_idx and qubit_idx < _size);
 	for(size_t _idx = 0;_idx < data.size();_idx++) {
@@ -214,19 +337,9 @@ void Quantum::phaseShift(size_t qubit_idx, Args... args, double ang) {
 	phaseShift(qubit_idx, ang);
 	phaseShift(args..., ang);
 }
-void Quantum::phaseFlip(size_t qubit_idx) {
-	phaseShift(qubit_idx);
-}
-void Quantum::phaseFlip(std::vector<size_t> qubit_idx_list) {
-	phaseShift(qubit_idx_list);
-}
-template<typename... Args>
-void Quantum::phaseFlip(size_t idx, Args... args) {
-	phaseShift(idx);
-	phaseFlip(args...);
-}
-//end of rotate phase and flip phase functions
+// -- end of rotate phase and flip phase functions
 
+// -- start setPhase
 // this function is pretty dangerous
 // setPhase will override phase of some state without checking
 // this might violate some contrains in the begining
@@ -240,5 +353,51 @@ void Quantum::setPhase(std::vector< std::pair< size_t, std::complex<double> > > 
 		setPhase(it.first, it.second);
 	}
 }
+// -- end setPhase
+
+// -- start controlled function
+// controlled gate with hashed index
+template<typename... Args> 
+void Quantum::controlled(size_t hashed, std::function<void(Quantum::__qubit_index__, Args...)> func) {
+	assert(0 <= hashed and hashed < data.size());
+	for(size_t _index = 0; _index < data.size();_index++) {
+		if((_index & hashed) == hashed) {
+			func(__qubit_index__(_index));
+		}
+	}
+}
+template<typename... Args> 
+void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, Args...)> func, size_t _index) {
+	assert(0 <= _index and _index < _size);
+	controlled(hashed ^ (1 << _index), func);
+}
+
+// variadic version of controlled gate with hashed index
+template<typename... Args1, typename... Args2> 
+void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, Args1...)> func, size_t _index, Args2... args) {
+	assert(0 <= _index and _index < _size);
+	controlled(hashed ^ (1 << _index), func, args...);
+}
+
+
+// controlled gate
+template<typename... Args1, typename... Args2>
+void Quantum::controlled(std::function<void(__qubit_index__, Args1...)> func, size_t _index, Args2... args) {
+	controlled(0, func, _index, args...);
+}
+
+// controlled gate with list of controlled qubits
+template<typename... Args> 
+void Quantum::controlled(std::function<void(__qubit_index__, Args...)> func, std::vector<size_t> index_list) {
+
+	size_t hashed = 0;
+	for(size_t _index : index_list) {
+		assert(0 <= _index and _index < _size);
+		hashed ^= 1u << _index;
+	}
+
+	controlled(hashed, func);
+}
+// -- end controlled function
 
 #endif
