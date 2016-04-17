@@ -90,7 +90,7 @@ class Quantum {
     	// simple phaseShift function with list of shifted qubits
     	void phaseShift(std::vector<size_t>, double = M_PI);
 
-    	// variadic phsaeShift function
+    	// variadic phaseShift function
     	template<typename... Args> void phaseShift(size_t, Args..., double = M_PI);
     	// -- end phaseShift header
 
@@ -99,7 +99,9 @@ class Quantum {
     public:
 
     	// phaseFlip function is an alias of phaseShift
-    	const auto& phaseFlip = phaseShift;
+    	template<typename... Args> auto phaseFlip(Args&&... args) -> decltype(phaseShift(std::forward<Args>(args)...)) {
+    		return phaseShift(std::forward<Args>(args)...);
+    	}
     	// void phaseFlip(__qubit_index__, size_t, double = M_PI);
     	// void phaseFlip(size_t);
     	// void phaseFlip(std::vector<size_t>);
