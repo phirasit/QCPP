@@ -16,9 +16,7 @@ int main() {
 		std::cout << "Probability of being " << i << " : " << qubits.getProbability(i) << std::endl;
 	}
 
-	qubits.controlled([&](Quantum::__qubit_index__ idx1, size_t idx2) {
-		qubits.Not(idx1, idx2);
-	}, 2, 0);
+	qubits.controlled(qubits.Not(), 2, 0);
 
 	std::cout << "After apply cnot gate" << std::endl;
 	for(int i = 0;i < (1 << qubits.size());i++) {
