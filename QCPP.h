@@ -57,24 +57,30 @@ class Quantum {
     	// controlled function consider the state of qubits before applying function
     private:
     	// controlled function with given hashed indice
-    	template<typename... Args> void controlled(size_t, std::function<void(__qubit_index__, Args...)>);
+    	template<typename... Args> void controlled(size_t, std::function<void(__qubit_index__, size_t, Args...)>);
 
     	// variadic controlled functions with given hashed indice
-    	template<typename... Args> void controlled(size_t, std::function<void(__qubit_index__, Args...)>, size_t);
-    	template<typename... Args1, typename... Args2> void controlled(size_t, std::function<void(__qubit_index__, Args1...)>, size_t, Args2...);
+    	template<typename... Args> void controlled(size_t, std::function<void(__qubit_index__, size_t, Args...)>, size_t);
+    	template<typename... Args1, typename... Args2> void controlled(size_t, std::function<void(__qubit_index__, size_t, Args1...)>, size_t, Args2...);
 
     public:
     	// simple controlled (variadic function)
-    	template<typename... Args1, typename... Args2> void controlled(std::function<void(__qubit_index__, Args1...)>, size_t, Args2...);
+    	template<typename... Args1, typename... Args2> void controlled(std::function<void(__qubit_index__, size_t, Args1...)>, size_t, Args2...);
 
     	// simple controlled with list of controlled qubits
-    	template<typename... Args> void controlled(std::function<void(__qubit_index__, Args...)>, std::vector<size_t>);
+    	template<typename... Args> void controlled(std::function<void(__qubit_index__, size_t, Args...)>, std::vector<size_t>);
 
     	// -- start not header
     	// not function swap current state of qubits
+    	// function name has to be captial letter to avoid reversed word collision
     public:
-    	// simple not function
+
+    	// not funtion for controlled function
     	// void not(__qubit_index__, size_t);
+
+    	// simple not function
+    	void Not(size_t);
+
     	// -- end not header
 
     	// -- start phaseShift header
@@ -102,10 +108,6 @@ class Quantum {
     	template<typename... Args> auto phaseFlip(Args&&... args) -> decltype(phaseShift(std::forward<Args>(args)...)) {
     		return phaseShift(std::forward<Args>(args)...);
     	}
-    	// void phaseFlip(__qubit_index__, size_t, double = M_PI);
-    	// void phaseFlip(size_t);
-    	// void phaseFlip(std::vector<size_t>);
-    	// template<typename... Args> void phaseFlip(size_t, Args...);
 
     	// -- end phaseFlip header
 
@@ -207,9 +209,9 @@ Quantum::Quantum(std::vector< std::complex<double> > _data) {
 	data = _data;
 	checkStatus();
 }
-Quantum::Quantum(size_t __size, std::vector< std::pair< size_t, std::complex<double> > > _data) {
+Quantum::Quantum(size_t __size, std::vector< std::pair< size_t, std::complex<double> > > _data) : Quantum(__size) {
 
-	Quantum(_size = __size);
+	data[0] = 0.0;
 	for(auto& state : _data) {
 		data[state.first] = state.second; 
 	}
@@ -360,7 +362,7 @@ void Quantum::setPhase(std::vector< std::pair< size_t, std::complex<double> > > 
 // -- start controlled function
 // controlled gate with hashed index
 template<typename... Args> 
-void Quantum::controlled(size_t hashed, std::function<void(Quantum::__qubit_index__, Args...)> func) {
+void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, size_t, Args...)> func) {
 	assert(0 <= hashed and hashed < data.size());
 	for(size_t _index = 0; _index < data.size();_index++) {
 		if((_index & hashed) == hashed) {
@@ -369,14 +371,14 @@ void Quantum::controlled(size_t hashed, std::function<void(Quantum::__qubit_inde
 	}
 }
 template<typename... Args> 
-void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, Args...)> func, size_t _index) {
+void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, size_t, Args...)> func, size_t _index) {
 	assert(0 <= _index and _index < _size);
 	controlled(hashed ^ (1 << _index), func);
 }
 
 // variadic version of controlled gate with hashed index
 template<typename... Args1, typename... Args2> 
-void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, Args1...)> func, size_t _index, Args2... args) {
+void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, size_t, Args1...)> func, size_t _index, Args2... args) {
 	assert(0 <= _index and _index < _size);
 	controlled(hashed ^ (1 << _index), func, args...);
 }
@@ -384,13 +386,13 @@ void Quantum::controlled(size_t hashed, std::function<void(__qubit_index__, Args
 
 // controlled gate
 template<typename... Args1, typename... Args2>
-void Quantum::controlled(std::function<void(__qubit_index__, Args1...)> func, size_t _index, Args2... args) {
+void Quantum::controlled(std::function<void(__qubit_index__, size_t, Args1...)> func, size_t _index, Args2... args) {
 	controlled(0, func, _index, args...);
 }
 
 // controlled gate with list of controlled qubits
 template<typename... Args> 
-void Quantum::controlled(std::function<void(__qubit_index__, Args...)> func, std::vector<size_t> index_list) {
+void Quantum::controlled(std::function<void(__qubit_index__, size_t, Args...)> func, std::vector<size_t> index_list) {
 
 	size_t hashed = 0;
 	for(size_t _index : index_list) {
@@ -401,5 +403,17 @@ void Quantum::controlled(std::function<void(__qubit_index__, Args...)> func, std
 	controlled(hashed, func);
 }
 // -- end controlled function
+
+// -- start not function
+// not function change qubit from |0> to |1>
+void Quantum::Not(size_t idx) {
+	assert(0 <= idx and idx < _size);
+	for(size_t _index = 0;_index < data.size();_index++) {
+		if((_index >> idx) & 1) {
+			std::swap(data[_index], data[_index ^ (1 << idx)]);
+		} 
+	}
+}
+// -- end not function
 
 #endif
