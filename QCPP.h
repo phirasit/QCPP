@@ -18,34 +18,26 @@ class Quantum {
     	std::vector< std::complex<double> > data, buffer;
 
     	void checkStatus(void);
-    	void cnotHashedIdx(size_t, size_t);
-    	template<typename... Args> void cnotHashedIdx(size_t, size_t, Args...);
 
     public:
 
     	void addQubits(size_t);
     	void addQubits(Quantum);
 
-    	void hadamard(size_t);
+    	void hadamard(size_t);ZXCj;
     	template<typename... Args> void hadamard(size_t, Args...);
     	void hadamard(std::vector<size_t>);
     	void hadamardRange(size_t, size_t);
 
-    	template<typename... Args> void cnot(size_t, Args...);
-    	void cnot(std::vector<size_t>, size_t);
-    	void cnot(std::vector<size_t>);
-    	void cnotRange(size_t, size_t, size_t);
-    	template<typename... Args> void toffoli(size_t, Args...);
-    	void toffoli(std::vector<size_t> , size_t);
-    	void toffoli(std::vector<size_t>);
-    	void toffoliRange(size_t, size_t, size_t);
+    	template<typename...Args> void controlled(std:function<void(size_t)>, size_t, Agrs...);
+    	void controlled(std::function<void(size_t)>, std::vector<size_t>);
 
-    	void rotatePhase(size_t, double = M_PI);
-    	void rotatePhase(std::vector<size_t>, double = M_PI);
-    	template<typename... Args> void rotatePhase(size_t, Args..., double ang = M_PI);
-    	void flipPhase(size_t);
-    	void flipPhase(std::vector<size_t>);
-    	template<typename... Args> void flipPhase(size_t, Args...);
+    	void phaseShift(size_t, double = M_PI);
+    	void phaseShift(std::vector<size_t>, double = M_PI);
+    	template<typename... Args> void phaseShift(size_t, Args..., double = M_PI);
+    	void phaseFlip(size_t);
+    	void phaseFlip(std::vector<size_t>);
+    	template<typename... Args> void phaseFlip(size_t, Args...);
 
     	void setPhase(size_t, std::complex<double>);
     	void setPhase(std::vector< std::pair< size_t, std::complex<double> > >);
@@ -183,67 +175,6 @@ void Quantum::hadamardRange(size_t left, size_t right) {
 	}
 }
 
-// begin C-NOT and toffoli gates 
-// apply C-NOT to every qubits in hash_val and last_idx
-void Quantum::cnotHashedIdx(size_t hash_val, size_t last_idx) {
-	assert(0 < hash_val and hash_val < data.size());
-	assert(((hash_val >> last_idx) & 1) == 0);
-	for(size_t _idx = 0;_idx < data.size();_idx++) {
-		if((__builtin_popcount(_idx & hash_val) & 1) and (_idx >> last_idx & 1)) {
-			std::swap(data[_idx], data[_idx ^ (1u << last_idx)]);
-		}
-	}
-}
-// apply C-NOT gates to all qubits in hash_val
-template<typename... Args>
-void Quantum::cnotHashedIdx(size_t hash_val, size_t idx, Args... args) {
-	assert(0 <= idx and idx < _size);
-	cnotHashedIdx(hash_val ^ (1 << idx), args...);
-}
-// apply C-NOT gates to some given qubits
-void Quantum::cnot(std::vector<size_t> idx_list, size_t last_idx) {
-	size_t hash_val = 0u;
-	for(size_t idx : idx_list) {
-		assert(0 <= idx and idx < _size);
-		assert(idx != last_idx);
-		hash_val ^= 1u << idx;
-	}
-	assert(0 <= last_idx and last_idx < data.size());
-	cnotHashedIdx(hash_val, last_idx);
-}
-template<typename... Args>
-void Quantum::cnot(size_t idx, Args... args) {
-	assert(0 <= idx and idx < _size);
-	cnotHashedIdx(1u << idx, args...);
-}
-void Quantum::cnot(std::vector<size_t> idx_list) {
-	assert(idx_list.size() > 0);
-	size_t last_idx = idx_list.back();
-	idx_list.pop_back();
-	cnot(idx_list, last_idx);
-}
-void Quantum::cnotRange(size_t left, size_t right, size_t last_idx) {
-	assert(0 <= left and left <= right and right < _size);
-	assert(last_idx < left or right < last_idx);
-	assert(0 <= last_idx and last_idx < _size);
-	size_t hash_val = (1u << (right + 1u)) - (1u << left);
-	cnotHashedIdx(hash_val, last_idx);
-}
-template<typename... Args>
-void Quantum::toffoli(size_t idx, Args... args) {
-	assert(0 <= idx and idx < _size);
-	cnotHashedIdx(1u << idx, args...);
-}
-void Quantum::toffoli(std::vector<size_t> idx_list, size_t last_idx) {
-	cnot(idx_list, last_idx);
-}
-void Quantum::toffoli(std::vector<size_t> idx_list) {
-	cnot(idx_list);
-}
-void Quantum::toffoliRange(size_t left, size_t right, size_t last_idx) {
-	cnotRange(left, right, last_idx);
-}
-// end C-NOT and toffoli gate
 
 // swap 2 qubits' phases
 // this function should be implement by using 3 c-not gates
@@ -265,7 +196,7 @@ void Quantum::swap(size_t idx1, size_t idx2) {
 }
 
 // begin rotate phase and flip phase functions 
-void Quantum::rotatePhase(size_t qubit_idx, double ang) {
+void Quantum::phaseShift(size_t qubit_idx, double ang) {
 	assert(0 <= qubit_idx and qubit_idx < _size);
 	for(size_t _idx = 0;_idx < data.size();_idx++) {
 		if((_idx >> qubit_idx) & 1) {
@@ -273,26 +204,26 @@ void Quantum::rotatePhase(size_t qubit_idx, double ang) {
 		}
 	}
 }
-void Quantum::rotatePhase(std::vector<size_t> qubit_idx_list, double ang) {
+void Quantum::phaseShift(std::vector<size_t> qubit_idx_list, double ang) {
 	for(size_t qubit_idx : qubit_idx_list) {
-		rotatePhase(qubit_idx, ang);
+		phaseShift(qubit_idx, ang);
 	}
 }
 template<typename... Args> 
-void Quantum::rotatePhase(size_t qubit_idx, Args... args, double ang) {
-	rotatePhase(qubit_idx, ang);
-	rotatePhase(args..., ang);
+void Quantum::phaseShift(size_t qubit_idx, Args... args, double ang) {
+	phaseShift(qubit_idx, ang);
+	phaseShift(args..., ang);
 }
-void Quantum::flipPhase(size_t qubit_idx) {
-	rotatePhase(qubit_idx);
+void Quantum::phaseFlip(size_t qubit_idx) {
+	phaseShift(qubit_idx);
 }
-void Quantum::flipPhase(std::vector<size_t> qubit_idx_list) {
-	rotatePhase(qubit_idx_list);
+void Quantum::phaseFlip(std::vector<size_t> qubit_idx_list) {
+	phaseShift(qubit_idx_list);
 }
 template<typename... Args>
-void Quantum::flipPhase(size_t idx, Args... args) {
-	rotatePhase(idx);
-	flipPhase(args...);
+void Quantum::phaseFlip(size_t idx, Args... args) {
+	phaseShift(idx);
+	phaseFlip(args...);
 }
 //end of rotate phase and flip phase functions
 
