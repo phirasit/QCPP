@@ -12,18 +12,23 @@ const std::complex<double> __quantum_sqrt_half__ = 1 / sqrt(2.0);
 
 class Quantum {
     
-    // private:
-public:
+    private:
+		// __qubit_index is a class of just one index
     	class __qubit_index__ {
 	    	public:
 	    		size_t index;
 	    		__qubit_index__(size_t _index) : index(_index) {}
     	};
 
+    	// contians number of qubits
     	size_t _size;
+
+    	// represent all possibility of every state 
     	std::vector< std::complex<double> > data, buffer;
 
+    	// check for validity of state
     	void checkStatus(void);
+
 
     	// -- start add qubits header
     	// add more qubits
@@ -74,10 +79,15 @@ public:
     	// -- start not header
     	// not function swap current state of qubits
     	// function name has to be captial letter to avoid reversed word collision
+
+    private:
+    	// not function for controlled function
+    	void Not(__qubit_index__, size_t);
+
     public:
 
-    	// not funtion for controlled function
-    	void Not(__qubit_index__, size_t);
+    	// return not funtion for controlled function
+    	std::function<void(Quantum::__qubit_index__, size_t)> Not(void);
 
     	// simple not function
     	void Not(size_t);
@@ -413,12 +423,15 @@ void Quantum::Not(size_t idx) {
 }
 
 // not function for controlled function
-void Quantum::Not(__qubit_index__ _hashed, size_t _idx) {
+void Quantum::Not(__qubit_index__ _hashed, size_t idx) {
 	size_t hashed = _hashed.index;
-	if(((hashed >> _idx) & 1) == 0) {
-		return;
-	}
-	std::swap(data[hashed], data[hashed ^ (1 << _idx)]);
+	assert(0 <= hashed and hashed < data.size());
+	assert(0 <= idx and idx < _size);
+	if(((hashed >> idx) & 1) == 0) return;
+	std::swap(data[hashed], data[hashed ^ (1 << idx)]);
+}
+std::function<void(Quantum::__qubit_index__, size_t)> Quantum::Not(void) {
+	return [&](__qubit_index__ _index1, size_t _index2) { Not(_index1, _index2); };
 }
 // -- end not function
 
