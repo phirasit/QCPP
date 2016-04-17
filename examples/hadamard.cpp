@@ -11,11 +11,11 @@ int main() {
 	Quantum qubits(5);
 
 	// turns all qubits into every state with same probabilities
-	qubits.Hadamard(0, 1, 2, 3, 4);
+	qubits.hadamard(0, 1, 2, 3, 4);
 	// or
 	// for(int i = 0;i < qubits.size();i++) qubits.Hadamard(i);
 	// or
-	// qubits.Hadamard({0, 1, 2, 3, 4});
+	// qubits.hadamard({0, 1, 2, 3, 4});
 	// would result the same
 
 	// the possibility should be the same
