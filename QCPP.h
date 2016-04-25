@@ -27,6 +27,7 @@ class Quantum {
     	// -- start add qubits header
     	// add more qubits
     public:
+
     	void addQubits(size_t = 1);
 
     	// add qubits from a quantum state
@@ -92,6 +93,9 @@ class Quantum {
     	// note : phaseShift pi = phaseFlip
     public:
 
+    	// phaseShift function for controlled
+    	std::function<void(size_t)> phaseShiftFunc(size_t, double = M_PI);
+    	
     	// simple phaseShift function
     	void phaseShift(size_t, double = M_PI);
 
@@ -138,6 +142,16 @@ class Quantum {
 		// simple swap function
     	void swap(size_t, size_t);
     	// -- end swap function header
+
+    	// -- start QFT function
+    public:
+
+    	// apply QFT to every qubits
+    	void QFT(void);
+
+    	// using QFT with given index vector
+    	void QFT(std::vector<size_t>) {}
+    	// -- end QFT function
 
     	// -- start response function header
     public:
@@ -343,6 +357,16 @@ void Quantum::phaseShift(size_t qubit_idx, Args... args, double ang) {
 	phaseShift(qubit_idx, ang);
 	phaseShift(args..., ang);
 }
+
+// phaseShift for controlled function
+std::function<void(size_t)> Quantum::phaseShiftFunc(size_t idx, double ang) {
+	assert(0 <= idx and idx < _size);
+	return [&, idx, ang](size_t _index) {
+		if((_index >> idx) & 1) {
+			data[_index] *= std::exp((0, 1) * ang);
+		}
+	};
+}
 // -- end of rotate phase and flip phase functions
 
 // -- start setPhase
@@ -426,12 +450,10 @@ void Quantum::Not(size_t idx, Args... args) {
 	Not(args...);
 }
 
-#include <iostream>
 // not function for controlled function
 std::function<void(size_t)> Quantum::NotFunc(size_t idx) {
 	assert(0 <= idx and idx < _size);
 	return [&, idx](size_t _index) {
-		std::cout << _index << " " << idx << std::endl;
 		if((_index >> idx) & 1) {
 			std::swap(data[_index], data[_index ^ (1 << idx)]);
 		}
@@ -439,4 +461,31 @@ std::function<void(size_t)> Quantum::NotFunc(size_t idx) {
 }
 // -- end not function
 
+// -- start QFT
+
+// normal QFT (apply QFT to every qubits)
+void Quantum::QFT(void) {
+	for(int i = 0;i < qubits.size();i++) {
+		hadamard(i);
+		for(int j = i+1;j < qubits.size();j++) {
+			controlled(qubits.phaseShiftFunc(i, 2 * M_PI / pow(2, j-i+1)), j);
+		}
+	}
+	for(int i = 0, j = qubits.size()-1;i < j;i++, j--) {
+		swap(i, j);
+	}
+}
+// QFT with given index vector
+void Quantum::QFT(std::vector<size_t> idx_list) {
+	for(int i = 0;i < idx_list.size();i++) {
+		hadamard(idx_list[i]);
+		for(int j = i+1;j < idx_list.size();j++) {
+			controlled(qubits.phaseShiftFunc(idx_list[i], 2 * M_PI / pow(2, j-i+1)), idx_list[j]);
+		}
+	}
+	for(int i = 0, j = idx_list.size()-1;i < j;i++, j--) {
+		swap(idx_list[i], idx_list[j]);
+	}
+}
+// -- end QFT
 #endif
