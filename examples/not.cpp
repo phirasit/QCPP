@@ -7,7 +7,7 @@ example of using not gate in QCPP library
 
 int main() {
 
-	// Init state
+	// init state
 	double prob = 1 / sqrt(2.0 * 4);
 	Quantum qubits(3, {{1, prob}, {3, prob}, {5, prob}, {7, prob}});
 
