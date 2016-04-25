@@ -150,7 +150,7 @@ class Quantum {
     	void QFT(void);
 
     	// using QFT with given index vector
-    	void QFT(std::vector<size_t>) {}
+    	void QFT(std::vector<size_t>);
     	// -- end QFT function
 
     	// -- start response function header
@@ -321,8 +321,8 @@ void Quantum::hadamardRange(size_t left, size_t right) {
 // swap 2 qubits' phases
 // this function should be implement by using 3 c-not gates
 void Quantum::swap(size_t idx1, size_t idx2) {
-	assert(0 <= idx1 and idx1 < _size);
-	assert(0 <= idx2 and idx2 < _size);
+	assert(0 <= idx1 and idx1 < size());
+	assert(0 <= idx2 and idx2 < size());
 	if(idx1 == idx2) return;	
 /*	
 	// this is how it should be done	
@@ -340,7 +340,7 @@ void Quantum::swap(size_t idx1, size_t idx2) {
 
 // -- start phase shift and phase flip functions 
 void Quantum::phaseShift(size_t qubit_idx, double ang) {
-	assert(0 <= qubit_idx and qubit_idx < _size);
+	assert(0 <= qubit_idx and qubit_idx < size());
 	for(size_t _idx = 0;_idx < data.size();_idx++) {
 		if((_idx >> qubit_idx) & 1) {
 			data[_idx] *= std::exp((0, 1) * ang);
@@ -360,7 +360,7 @@ void Quantum::phaseShift(size_t qubit_idx, Args... args, double ang) {
 
 // phaseShift for controlled function
 std::function<void(size_t)> Quantum::phaseShiftFunc(size_t idx, double ang) {
-	assert(0 <= idx and idx < _size);
+	assert(0 <= idx and idx < size());
 	return [&, idx, ang](size_t _index) {
 		if((_index >> idx) & 1) {
 			data[_index] *= std::exp((0, 1) * ang);
@@ -402,7 +402,7 @@ void Quantum::controlled(size_t hashed, std::function<void(size_t)> func, size_t
 }
 template<typename... Args> 
 void Quantum::controlled(size_t hashed, std::function<void(size_t)> func, size_t _index, Args... args) {
-	assert(0 <= _index and _index < _size);
+	assert(0 <= _index and _index < size());
 	controlled(hashed ^ (1 << _index), func, args...);
 }
 
@@ -424,7 +424,7 @@ void Quantum::controlled(std::function<void(size_t)> func, std::vector<size_t> i
 
 	size_t hashed = 0;
 	for(size_t _index : index_list) {
-		assert(0 <= _index and _index < _size);
+		assert(0 <= _index and _index < size());
 		hashed ^= 1u << _index;
 	}
 
@@ -435,7 +435,7 @@ void Quantum::controlled(std::function<void(size_t)> func, std::vector<size_t> i
 // -- start not function
 // not function change qubit from |0> to |1>
 void Quantum::Not(size_t idx) {
-	assert(0 <= idx and idx < _size);
+	assert(0 <= idx and idx < size());
 	for(size_t _index = 0;_index < data.size();_index++) {
 		if((_index >> idx) & 1) {
 			std::swap(data[_index], data[_index ^ (1 << idx)]);
@@ -452,7 +452,7 @@ void Quantum::Not(size_t idx, Args... args) {
 
 // not function for controlled function
 std::function<void(size_t)> Quantum::NotFunc(size_t idx) {
-	assert(0 <= idx and idx < _size);
+	assert(0 <= idx and idx < size());
 	return [&, idx](size_t _index) {
 		if((_index >> idx) & 1) {
 			std::swap(data[_index], data[_index ^ (1 << idx)]);
@@ -465,27 +465,34 @@ std::function<void(size_t)> Quantum::NotFunc(size_t idx) {
 
 // normal QFT (apply QFT to every qubits)
 void Quantum::QFT(void) {
-	for(int i = 0;i < qubits.size();i++) {
+	for(size_t i = 0;i < size();i++) {
 		hadamard(i);
-		for(int j = i+1;j < qubits.size();j++) {
-			controlled(qubits.phaseShiftFunc(i, 2 * M_PI / pow(2, j-i+1)), j);
+		for(size_t j = i+1;j < size();j++) {
+			controlled(phaseShiftFunc(i, 2 * M_PI / pow(2, j-i+1)), j);
 		}
 	}
-	for(int i = 0, j = qubits.size()-1;i < j;i++, j--) {
+	for(size_t i = 0, j = size()-1;i < j;i++, j--) {
 		swap(i, j);
 	}
 }
 // QFT with given index vector
 void Quantum::QFT(std::vector<size_t> idx_list) {
-	for(int i = 0;i < idx_list.size();i++) {
+
+	for(size_t id : idx_list) {
+		assert(0 <= id and id < size());
+	}
+	
+	for(size_t i = 0;i < idx_list.size();i++) {
 		hadamard(idx_list[i]);
-		for(int j = i+1;j < idx_list.size();j++) {
-			controlled(qubits.phaseShiftFunc(idx_list[i], 2 * M_PI / pow(2, j-i+1)), idx_list[j]);
+		for(size_t j = i+1;j < idx_list.size();j++) {
+			controlled(phaseShiftFunc(idx_list[i], 2 * M_PI / pow(2, j-i+1)), idx_list[j]);
 		}
 	}
-	for(int i = 0, j = idx_list.size()-1;i < j;i++, j--) {
+	for(size_t i = 0, j = idx_list.size()-1;i < j;i++, j--) {
 		swap(idx_list[i], idx_list[j]);
 	}
 }
 // -- end QFT
+
+
 #endif
