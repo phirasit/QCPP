@@ -137,7 +137,7 @@ class Quantum {
     	// swap function swaps phase of two qubits
 	public:
 		// swap function for controlled function
-		// template<typename... Args> void swap(std::function<Args...>); -undone
+		std::function<void(size_t)> swapFunc(size_t, size_t);
 
 		// simple swap function
     	void swap(size_t, size_t);
@@ -151,6 +151,10 @@ class Quantum {
 
     	// using QFT with given index vector
     	void QFT(std::vector<size_t>);
+
+    	// apply QFT to every qubits in given range
+    	void QFT(size_t, size_t);
+
     	// -- end QFT function
 
     	// -- start response function header
@@ -336,6 +340,15 @@ void Quantum::swap(size_t idx1, size_t idx2) {
 		}
 	}
 }
+
+// swap function for controlled gate
+std::function<void(size_t)> Quantum::swapFunc(size_t idx1, size_t idx2) {
+	return [&, idx1, idx2](size_t idx) {
+		if(((idx >> idx1) & 1) == 0 and ((idx >> idx2) & 1)) {
+			std::swap(data[idx], data[idx ^ (1 << idx1) ^ (1 << idx2)]);
+		}
+	};
+}
 // -- end swap function
 
 // -- start phase shift and phase flip functions 
@@ -490,6 +503,22 @@ void Quantum::QFT(std::vector<size_t> idx_list) {
 	}
 	for(size_t i = 0, j = idx_list.size()-1;i < j;i++, j--) {
 		swap(idx_list[i], idx_list[j]);
+	}
+}
+// QFT with a given range of indices
+void Quantum::QFT(size_t l, size_t r) {
+
+	assert(0 <= l and l <= r and r < size());
+
+	for(size_t i = l;i <= r;i++) {
+		hadamard(i);
+		for(size_t j = i+1;j <= r;j++) {
+			controlled(phaseShiftFunc(i, 2 * M_PI / pow(2, j-i+1)), j);
+		}
+	}
+
+	for(size_t i = l, j = r;i < j;i++, j--) {
+		swap(i, j);
 	}
 }
 // -- end QFT
