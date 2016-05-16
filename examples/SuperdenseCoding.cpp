@@ -32,9 +32,8 @@ int main() {
 	Quantum qubits({_sqrt_half_, 0.0f, 0.0f, _sqrt_half_});	
 
 	/*
-	When Alice try to send information of Bob,
-	she will manipulate her qubit according to the text
-	she want to send.
+	When Alice tries to send information of Bob,
+	she will manipulate her qubit according to the message
 	*/
 
 	// -- begin Alice's part
@@ -56,7 +55,7 @@ int main() {
 		// apply phaseFlip
 		qubits.phaseFlip(0);
 	}else if(text == 3) {
-		// apply Not and phaseFlip
+		// apply not and phaseFlip
 		qubits.Not(0);
 		qubits.phaseFlip(0);
 	}else {
@@ -72,7 +71,7 @@ int main() {
 	// -- end Alice's part
 
 	/*
-	Alice send her qubit to Bob, and Bob will have both qubits in his hand.
+	Alice send her qubit to Bob, so Bob will have both qubits in his hand.
 	He will decrypt the text by apply c-not and hadamard respectively.
 	*/
 
