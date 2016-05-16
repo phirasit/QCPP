@@ -5,9 +5,9 @@
 int main() {
 
 	// make it more non-deterministic
-	srand(time(NULL));
+	srand(time(0));
 
-	// initialize Quantum state with 5 qubits
+	// initialize Quantum system with 5 qubits
 	Quantum qubits(5);
 
 	// turns all qubits into every state with same probabilities
