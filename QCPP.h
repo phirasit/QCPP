@@ -1,3 +1,5 @@
+/*
+*/
 #ifndef __QUANTUM_CPP_H__
 #define __QUANTUM_CPP_H__
 
@@ -8,7 +10,12 @@
 #include <functional>
 #include <vector>
 
-const std::complex<double> __quantum_sqrt_half__ = 1 / sqrt(2.0);
+#ifndef __QUANTUM_CPP_SQRT_HALF__
+#define __QUANTUM_CPP_SQRT_HALF__
+
+const std::complex<double> __quantum_sqrt_half__ = 1.0 / sqrt(2.0);
+
+#endif
 
 class Quantum {
     
@@ -23,20 +30,19 @@ class Quantum {
     	// check for validity of state
     	void checkStatus(void);
 
-
-    	// -- start add qubits header
-    	// add more qubits
+	// -- start add qubits headers
+	// add more qubits
     public:
 
     	void addQubits(size_t = 1);
 
     	// add qubits from a quantum state
     	void addQubits(Quantum);
-    	// -- end add qubits
+	// -- end add qubits
 
-    	// -- start hadamard header
-    	// hadamard function using with controlled function
-    	// should not be called directly but passed as parameter
+	// -- start hadamard headers
+	// hadamard function using with controlled function
+	// should not be called directly but passed as parameter
     public:
 
     	// simple hadamard function
@@ -45,15 +51,18 @@ class Quantum {
     	// variadic hadamard function
     	template<typename... Args> void hadamard(size_t, Args...);
 
+    	// hadamard function for controlled gate
+    	std::function<void(size_t)> hadamardFunc(size_t);
+
     	// hadamard function with list of indexed
     	void hadamard(std::vector<size_t>);
 
     	// hadamard function to every qubits in given range
     	void hadamardRange(size_t, size_t);
-    	// -- end hadamard header
+	// -- end hadamard headers
 
-    	// start controlled function 
-    	// controlled function consider the state of qubits before applying function
+	// -- start controlled function headers
+	// controlled function consider the state of qubits before applying function
     private:
 
     	// controlled function with given hashed indice
@@ -72,9 +81,10 @@ class Quantum {
     	// simple controlled with list of controlled qubits
     	void controlled(std::function<void(size_t)>, std::vector<size_t>);
 
-    	// -- start not header
-    	// not function swap current state of qubits
-    	// function name has to be captial letter to avoid reversed word collision
+    // -- end controlled function headers
+	// -- start not headers
+	// not function swap current state of qubits
+	// function name has to be captial letter to avoid reversed word collision
     public:
 
     	// return not funtion for controlled function
@@ -86,11 +96,11 @@ class Quantum {
     	// variadic not function
     	template<typename... Args> void Not(size_t, Args...);
 
-    	// -- end not header
+	// -- end not headers
 
-    	// -- start phaseShift header
-    	// phase shift shifts amplitude of |1> state
-    	// note : phaseShift pi = phaseFlip
+	// -- start phaseShift headers
+	// phase shift shifts amplitude of |1> state
+	// note : phaseShift pi = phaseFlip
     public:
 
     	// phaseShift function for controlled
@@ -104,22 +114,22 @@ class Quantum {
 
     	// variadic phaseShift function
     	template<typename... Args> void phaseShift(size_t, Args..., double = M_PI);
-    	// -- end phaseShift header
+	// -- end phaseShift headers
 
-    	// -- start phaseFlip header
-    	// phaseFlip inverses the phase of |1> state
-    public:
+	// -- start phaseFlip headers
+	// phaseFlip inverses the phase of |1> state
+	public:
 
     	// phaseFlip function is an alias of phaseShift
     	template<typename... Args> auto phaseFlip(Args&&... args) -> decltype(phaseShift(std::forward<Args>(args)...)) {
     		return phaseShift(std::forward<Args>(args)...);
     	}
 
-    	// -- end phaseFlip header
+	// -- end phaseFlip headers
 
-    	// -- setPhase function header
-    	// warning : this function should be used in oracle function only
-    	// this function might corrupt the system 
+	// -- setPhase function headers
+	// warning : this function should be used in oracle function only
+	// this function might corrupt the system 
     public:
 
     	// simple setPhase function 
@@ -131,19 +141,19 @@ class Quantum {
     	// variadic setPhase function
     	template<typename... Args> void setPhase(size_t, std::complex<double>, Args...);
 
-    	// -- end setPhase header
+	// -- end setPhase headers
 
-    	// -- start swap function header
-    	// swap function swaps phase of two qubits
+	// -- start swap function headers
+	// swap function swaps phase of two qubits
 	public:
 		// swap function for controlled function
 		std::function<void(size_t)> swapFunc(size_t, size_t);
 
 		// simple swap function
     	void swap(size_t, size_t);
-    	// -- end swap function header
+	// -- end swap function headers
 
-    	// -- start QFT function
+	// -- start QFT function headers
     public:
 
     	// apply QFT to every qubits
@@ -155,9 +165,9 @@ class Quantum {
     	// apply QFT to every qubits in given range
     	void QFT(size_t, size_t);
 
-    	// -- end QFT function
+	// -- end QFT function headers
 
-    	// -- start response function header
+	// -- start response function headers
     public:
 
     	// get probability of start collapsed to given state
@@ -172,9 +182,9 @@ class Quantum {
     	// return number of qubits
     	size_t size(void);
 
-    	// -- end response function header
+	// -- end response function headers
 
-    	// -- start constructor funciton header
+	// -- start constructor funciton headers
     public:
 
     	// simple constructor
@@ -186,19 +196,20 @@ class Quantum {
 
     	// constructor with some given state of evey possibility
     	Quantum(size_t, std::vector< std::pair< size_t, std::complex<double> > >);
-  		// -- end constructor function header
 
-    	// -- start destructor function header
+	// -- end constructor function headers
+
+	// -- start destructor function headers
   	public:
 
   		// simple destructor
     	~Quantum(void);
-    	// -- end destructor function
+	// -- end destructor function headers
 };
 
-
+// check status function
 // check for errors
-// the sum of all probabilities should be equal to 1
+//  - sum of all probabilities should be equal to 1
 void Quantum::checkStatus(void) {
 	assert((1 << _size) == data.size());
 	buffer.resize(data.size());
@@ -231,10 +242,11 @@ Quantum::Quantum(std::vector< std::complex<double> > _data) {
 }
 Quantum::Quantum(size_t __size, std::vector< std::pair< size_t, std::complex<double> > > _data) : Quantum(__size) {
 
-	data[0] = 0.0;
+	std::fill(data.begin(), data.end(), 0.0);
 	for(auto& state : _data) {
 		data[state.first] = state.second; 
 	}
+
 	checkStatus();
 }
 
@@ -248,19 +260,19 @@ Quantum::~Quantum(void) {
 void Quantum::addQubits(size_t __size) {
 	assert(_size > 0u);
 	data.resize(1 << (_size + __size), 0.0f);
-	std::fill(std::next(data.begin(), (1 << _size) + 1), data.end(), 0);
+	std::fill(std::next(data.begin(), (1 << _size) + 1), data.end(), 0.0);
 	_size += __size;
 	checkStatus();
 }
 void Quantum::addQubits(Quantum qubits) {
-	std::vector< std::complex<double> > new_data(1u << (_size + qubits.size()));
+	std::vector< std::complex<double> > new_data(1u << (_size + qubits.size()), 0.0);
 	for(size_t _idx = 0u; _idx < data.size(); _idx++) {
 		for(size_t __idx = 0u; __idx < qubits.data.size(); __idx++) {
 			new_data[(__idx << data.size()) ^ _idx] = data[_idx] * qubits.data[__idx];
 		}
 	}
 	_size += qubits.size();
-	data = new_data;
+	data.assign(new_data.begin(), new_data.end());
 	checkStatus();
 }
 
@@ -294,11 +306,10 @@ void Quantum::hadamard(size_t idx) {
 	assert(0 <= idx and idx < (_size));
 	std::fill(buffer.begin(), buffer.end(), 0.0);
 	for(size_t _state = 0u;_state < buffer.size();_state++) {
-		buffer[_state] += ((_state >> idx) & 1 ? -__quantum_sqrt_half__ : __quantum_sqrt_half__) * data[_state];
+		buffer[_state] += ((_state >> idx) & 1 ? -1.0 : 1.0) * __quantum_sqrt_half__ * data[_state];
 		buffer[_state ^ (1u << idx)] += __quantum_sqrt_half__ * data[_state];
 	}
-
-	data = buffer;
+	std::copy(buffer.begin(), buffer.end(), data.begin());
 	checkStatus();
 }
 // apply some hadamard gates to some data
@@ -319,34 +330,48 @@ void Quantum::hadamardRange(size_t left, size_t right) {
 		hadamard(_idx);
 	}
 }
+
+// hadamard function for controlled gate
+std::function<void(size_t)> Quantum::hadamardFunc(size_t idx1) {
+	return [=, idx1](size_t idx) {
+		buffer[idx] += ((idx >> idx1) & 1 ? -1.0 : 1.0) * __quantum_sqrt_half__ * data[idx];
+		buffer[idx ^ (1u << idx1)] += __quantum_sqrt_half__ * data[idx];
+	};
+}
+
 // -- end hadamard function
 
 // -- start swap function
 // swap 2 qubits' phases
-// this function should be implement by using 3 c-not gates
+// this function should be implemented by using 3 c-not gates
 void Quantum::swap(size_t idx1, size_t idx2) {
 	assert(0 <= idx1 and idx1 < size());
 	assert(0 <= idx2 and idx2 < size());
-	if(idx1 == idx2) return;	
-/*	
+	if(idx1 == idx2) return; 
+	
 	// this is how it should be done	
-	cnot(idx1, idx2);
-	cnot(idx2, idx1);
-	cnot(idx1, idx2);
-*/	
+	// controlled(NotFunc(idx1), idx2);
+	// controlled(NotFunc(idx2), idx1);
+	// controlled(NotFunc(idx1), idx2);
+	
+	// but, for a better performance
+	std::fill(buffer.begin(), buffer.end(), 0.0);
 	for(size_t _idx = 0;_idx < data.size();_idx++) {
-		if(((_idx >> idx1) & 1) == 0 and ((_idx >> idx2) & 1)) {
-			std::swap(data[_idx], data[_idx ^ (1 << idx1) ^ (1 << idx2)]);
-		}
+		size_t bit1 = (_idx >> idx1) bitand 1u;
+		size_t bit2 = (_idx >> idx2) bitand 1u;
+		size_t nwidx = _idx xor (bit1 << idx1) xor (bit2 << idx2);
+		buffer[nwidx xor (bit1 << idx2) xor (bit2 << idx1)] = data[_idx];
 	}
+	std::copy(buffer.begin(), buffer.end(), data.begin());
 }
 
 // swap function for controlled gate
 std::function<void(size_t)> Quantum::swapFunc(size_t idx1, size_t idx2) {
-	return [&, idx1, idx2](size_t idx) {
-		if(((idx >> idx1) & 1) == 0 and ((idx >> idx2) & 1)) {
-			std::swap(data[idx], data[idx ^ (1 << idx1) ^ (1 << idx2)]);
-		}
+	return [=, idx1, idx2](size_t idx) {
+		size_t bit1 = (idx >> idx1) bitand 1u;
+		size_t bit2 = (idx >> idx2) bitand 1u;
+		size_t nwidx = idx xor (bit1 << idx1) xor (bit2 << idx2);
+		buffer[nwidx xor (bit1 << idx2) xor (bit2 << idx1)] = data[idx];		
 	};
 }
 // -- end swap function
@@ -354,11 +379,15 @@ std::function<void(size_t)> Quantum::swapFunc(size_t idx1, size_t idx2) {
 // -- start phase shift and phase flip functions 
 void Quantum::phaseShift(size_t qubit_idx, double ang) {
 	assert(0 <= qubit_idx and qubit_idx < size());
+	std::fill(buffer.begin(), buffer.end(), 0);
 	for(size_t _idx = 0;_idx < data.size();_idx++) {
 		if((_idx >> qubit_idx) & 1) {
-			data[_idx] *= std::exp((0, 1) * ang);
+			buffer[_idx] = data[_idx] * std::exp((0, 1) * ang);
+		}else {
+			buffer[_idx] = data[_idx];
 		}
 	}
+	std::copy(buffer.begin(), buffer.end(), data.begin());
 }
 void Quantum::phaseShift(std::vector<size_t> qubit_idx_list, double ang) {
 	for(size_t qubit_idx : qubit_idx_list) {
@@ -374,9 +403,11 @@ void Quantum::phaseShift(size_t qubit_idx, Args... args, double ang) {
 // phaseShift for controlled function
 std::function<void(size_t)> Quantum::phaseShiftFunc(size_t idx, double ang) {
 	assert(0 <= idx and idx < size());
-	return [&, idx, ang](size_t _index) {
+	return [=, idx, ang](size_t _index) {
 		if((_index >> idx) & 1) {
-			data[_index] *= std::exp((0, 1) * ang);
+			buffer[_index] = data[_index] * std::exp((0, 1) * ang);
+		}else {
+			buffer[_index] = data[_index];
 		}
 	};
 }
@@ -402,11 +433,15 @@ void Quantum::setPhase(std::vector< std::pair< size_t, std::complex<double> > > 
 // controlled gate with hashed index
 void Quantum::controlled(size_t hashed, std::function<void(size_t)> func) {
 	assert(0 <= hashed and hashed < data.size());
+	std::fill(buffer.begin(), buffer.end(), 0);
 	for(size_t _index = 0; _index < data.size();_index++) {
 		if((_index & hashed) == hashed) {
 			func(_index);
+		}else {
+			buffer[_index] += data[_index];
 		}
 	}
+	std::copy(buffer.begin(), buffer.end(), data.begin());
 }
 
 // variadic version of controlled gate with hashed index
@@ -420,7 +455,7 @@ void Quantum::controlled(size_t hashed, std::function<void(size_t)> func, size_t
 }
 
 
-// variadic controlled gate
+// variadic controlled gate functions
 void Quantum::controlled(std::function<void(size_t)> func, size_t idx) {
 	controlled(0, func, idx);
 }
@@ -449,11 +484,11 @@ void Quantum::controlled(std::function<void(size_t)> func, std::vector<size_t> i
 // not function change qubit from |0> to |1>
 void Quantum::Not(size_t idx) {
 	assert(0 <= idx and idx < size());
+	std::fill(buffer.begin(), buffer.end(), 0);
 	for(size_t _index = 0;_index < data.size();_index++) {
-		if((_index >> idx) & 1) {
-			std::swap(data[_index], data[_index ^ (1 << idx)]);
-		} 
+		buffer[_index ^ (1u << idx)] = data[_index];
 	}
+	std::copy(buffer.begin(), buffer.end(), data.begin());
 }
 
 // variadic not function
@@ -462,14 +497,13 @@ void Quantum::Not(size_t idx, Args... args) {
 	Not(idx);
 	Not(args...);
 }
+// -- end not function
 
 // not function for controlled function
 std::function<void(size_t)> Quantum::NotFunc(size_t idx) {
 	assert(0 <= idx and idx < size());
-	return [&, idx](size_t _index) {
-		if((_index >> idx) & 1) {
-			std::swap(data[_index], data[_index ^ (1 << idx)]);
-		}
+	return [=, idx](size_t _index) {
+		buffer[_index ^ (1 << idx)] = data[_index];
 	};
 }
 // -- end not function
@@ -488,6 +522,7 @@ void Quantum::QFT(void) {
 		swap(i, j);
 	}
 }
+
 // QFT with given index vector
 void Quantum::QFT(std::vector<size_t> idx_list) {
 
@@ -505,6 +540,7 @@ void Quantum::QFT(std::vector<size_t> idx_list) {
 		swap(idx_list[i], idx_list[j]);
 	}
 }
+
 // QFT with a given range of indices
 void Quantum::QFT(size_t l, size_t r) {
 
