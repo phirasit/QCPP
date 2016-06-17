@@ -13,18 +13,6 @@ Factor an integer by using Shor's algorithm.
 
 #include <QCPP.h>
 
-// check wheater a number is prime
-// for a better performance we should use other algorithms
-int prime(int val) {
-	if ( val == 1 ) return false;
-	for(int i = 2;i * i <= val;i++) {
-		if(val % i == 0) {
-			return false;
-		}
-	}
-	return true;
-}
-
 int main() {
 
 	int N;
@@ -49,11 +37,6 @@ int main() {
 				return 0;
 			}
 		}
-	}
-
-	if(prime(N)) {
-		std::cout << N << " is prime" << std::endl;
-		return 0;
 	}
 
 	if(N == 1) {
@@ -112,7 +95,9 @@ int main() {
 
 	// std::cout << result << std::endl;
 
-	for ( int try_cnt = 0 ; try_cnt < 100 ; try_cnt++ ) {
+	const int cnt_limit = 100;
+
+	for ( int try_cnt = 0 ; try_cnt < cnt_limit ; try_cnt++ ) {
 
 		// get result
 		int c = qubits.getState();
@@ -160,9 +145,11 @@ int main() {
 
 		if ( 1 < factor and factor < N ) {
 			std :: cout << " Solution found : " << factor << " x " << N / factor << std :: endl;
-			break;
+			return 0;
 		}
 	}
+
+	std :: cout << N << " is a prime " << std :: endl;
 
 	return 0;
 }

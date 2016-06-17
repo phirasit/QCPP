@@ -32,10 +32,10 @@ const std :: complex < double > __quantum_sqrt_half__ = 1.0 / sqrt ( 2.0 ) ;
 
 #endif
 
-#ifndef __QUANTUM_CPP_DEF__
-#define __QUANTUM_CPP_DEF__
-
 // function for controlled
+#ifndef __QUANTUM_CPP_TYPEDEF__
+#define __QUANTUM_CPP_TYPEDEF__
+
 typedef std :: function < void ( size_t ) > ControlledFunc;
 
 #endif
@@ -84,10 +84,13 @@ class Quantum {
     	template < typename... Args > void hadamard ( size_t , Args... );
 
     	// hadamard function for controlled gate
-    	std :: function < void ( size_t ) > hadamardFunc ( size_t );
+    	ControlledFunc hadamardFunc ( size_t );
 
-    	// hadamard function with list of indexed
+    	// hadamard function with list of indices
     	void hadamard ( std :: vector < size_t > );
+
+    	// variadic function with list of indices
+    	template < typename... Args > void hadamard ( std :: vector < size_t > , Args... );
 
     	// hadamard function to every qubits in given range
     	void hadamardRange ( size_t , size_t );
@@ -99,7 +102,7 @@ class Quantum {
 
     private:
 
-    	// controlled function with given hashed indice
+    	// controlled function with given hashed indices
     	void controlled ( size_t , ControlledFunc );
 
     	// variadic controlled function with given hashed indice
@@ -110,7 +113,7 @@ class Quantum {
 
     	// variadic controlled function without given hashed indice 
     	void controlled ( ControlledFunc , size_t );
-    	template < typename... Args > void controlled (  ControlledFunc , size_t, Args...);
+    	template < typename... Args > void controlled (  ControlledFunc , size_t, Args... );
 
     	// simple controlled with list of controlled qubits
     	void controlled ( ControlledFunc , std :: vector < size_t > );
@@ -352,9 +355,9 @@ size_t Quantum::observe ( void ) {
 	return observeRange(0, size() - 1u );
 }
 // observe with given list of indices
-size_t Quantum::observe ( std :: vector < size_t > idx_list ) {
+size_t Quantum::observe ( std :: vector < size_t > indices ) {
 	size_t hashed = 0u;
-	for ( size_t idx : idx_list ) {
+	for ( size_t idx : indices ) {
 		hashed ^= 1u << idx;
 	}
 	return observeHashed ( hashed );
@@ -370,17 +373,17 @@ size_t Quantum::observeRange ( size_t left, size_t right ) {
 
 // -- begin Initializers / constructors
 Quantum::Quantum ( size_t __size ) {
-	if(__size == 0u) return;
+	if ( __size == 0u ) return;
 	_size = __size;
-	data.resize(1u << __size, 0.0);
+	data.resize ( 1u << __size , 0.0 );
 	std :: fill ( data.begin() , data.end() , 0.0 );
 	data [ 0 ] = 1.0;
 	checkStatus(); 
 }
-Quantum::Quantum( std :: vector < std :: complex < double > > _data) {
+Quantum::Quantum( std :: vector < std :: complex < double > > _data ) {
 	_size = log2(_data.size() );
 	assert ( _size > 0 and ( 1u << _size ) == _data.size() );
-	data.resize( _data.size() );
+	data.resize ( _data.size() );
 	std :: copy ( _data.begin() , _data.end() , data.begin() );
 	checkStatus(); 
 }
@@ -395,9 +398,7 @@ Quantum::Quantum( size_t __size , std :: vector < std :: pair < size_t, std :: c
 // -- end constructors
 
 // -- begin destructor
-Quantum::~Quantum ( void ) {
-	data.clear(); 
-}
+Quantum::~Quantum ( void ) {}
 // -- end destructor
 
 // -- begin addQubits
@@ -408,9 +409,11 @@ void Quantum::addQubits ( size_t __size ) {
 	data.resize ( 1 << ( _size + __size ) , 0.0f );
 	std :: fill ( std :: next ( data.begin() , ( 1 << _size ) + 1 ) , data.end() , 0.0 );
 	_size += __size;
+
+	// check for correctness
 	checkStatus(); 
 }
-void Quantum::addQubits(Quantum qubits) {
+void Quantum::addQubits ( Quantum qubits ) {
 	 std :: vector < std :: complex < double > > new_data(1u << (_size + qubits.size() ), 0.0);
 	for ( size_t _idx = 0u ; _idx < data.size() ;  _idx++ ) {
 		for ( size_t __idx = 0u ; __idx < qubits.data.size() ;  __idx++ ) {
@@ -419,6 +422,8 @@ void Quantum::addQubits(Quantum qubits) {
 	}
 	_size += qubits.size(); 
 	data.assign ( new_data.begin() , new_data.end() );
+
+	// check for correctness
 	checkStatus(); 
 }
 // -- end addQubits
@@ -426,13 +431,17 @@ void Quantum::addQubits(Quantum qubits) {
 // -- begin hadamard function
 // apply hadamard gate to a qubit
 void Quantum::hadamard ( size_t idx ) {
-	assert ( 0 <= idx and idx < (_size) );
+
+	assert ( 0 <= idx and idx < ( _size ) );
+
 	std :: fill ( buffer.begin() , buffer.end() , 0.0 );
 	for ( size_t state = 0u ; state < buffer.size() ; state++ ) {
 		buffer [ state ] += ( ( state >> idx ) & 1 ? -1.0 : 1.0 ) * __quantum_sqrt_half__ * data [ state ];
 		buffer [ state ^ ( 1u << idx ) ] += __quantum_sqrt_half__ * data [ state ];
 	}
 	std :: copy ( buffer.begin() , buffer.end() , data.begin() );
+
+	// check for correctness
 	checkStatus(); 
 }
 
@@ -443,11 +452,19 @@ void Quantum::hadamard ( size_t idx , Args... args ) {
 	hadamard ( args... );
 }
 
-// apply hadamard to every qubits in idx_list
-void Quantum::hadamard ( std :: vector < size_t > idx_list ) {
-	for ( size_t idx : idx_list ) {
+// apply hadamard to every qubits in indices
+void Quantum::hadamard ( std :: vector < size_t > indices ) {
+	for ( size_t idx : indices ) {
 		hadamard ( idx );
 	}
+}
+
+template < typename... Args >
+void Quantum::hadamard ( std :: vector < size_t > indices , Args... args ) {
+	for ( size_t index : indices ) {
+		hadamard ( index );
+	}
+	hadamard ( args... );
 }
 
 // apply hadamard gates to every qubits in range [left, right]
@@ -464,7 +481,7 @@ void Quantum::hadamard ( void ) {
 
 // hadamard function for controlled gate
 ControlledFunc Quantum::hadamardFunc ( size_t idx1 ) {
-	return [ = , idx1 ] ( size_t idx ) {
+	return [ & , idx1 ] ( size_t idx ) {
 		buffer [ idx ] += ( ( idx >> idx1 ) & 1 ? -1.0 : 1.0 ) * __quantum_sqrt_half__ * data [ idx ];
 		buffer [ idx ^ ( 1u << idx1 ) ] += __quantum_sqrt_half__ * data [ idx ];
 	};
@@ -516,19 +533,21 @@ void Quantum::phaseShift ( double ang ) {
 	}	
 }
 void Quantum::phaseShift ( size_t qubit_idx , double ang ) {
-	assert(0 <= qubit_idx and qubit_idx < size() );
+
+	assert ( 0 <= qubit_idx and qubit_idx < size() );
+
 	std :: fill ( buffer.begin() , buffer.end() , 0 );
 	for ( size_t _idx = 0 ; _idx < data.size() ; _idx++ ) {
 		if( ( _idx >> qubit_idx ) & 1 ) {
-			buffer [ _idx ] = data [ _idx ] * std :: exp ( std :: complex < double > (0, 1) * ang);
+			buffer [ _idx ] = data [ _idx ] * std :: exp ( std :: complex < double > ( 0 , 1 ) * ang );
 		} else {
 			buffer [ _idx ] = data [ _idx ];
 		}
 	}
 	std :: copy ( buffer.begin() , buffer.end() , data.begin() );
 }
-void Quantum::phaseShift ( std :: vector < size_t > qubit_idx_list , double ang ) {
-	for ( size_t qubit_idx : qubit_idx_list ) {
+void Quantum::phaseShift ( std :: vector < size_t > qubit_indices , double ang ) {
+	for ( size_t qubit_idx : qubit_indices ) {
 		phaseShift ( qubit_idx , ang );
 	}
 }
@@ -540,10 +559,12 @@ void Quantum::phaseShift ( size_t qubit_idx , Args... args , double ang ) {
 
 // phaseShift for controlled function
 ControlledFunc Quantum::phaseShiftFunc ( size_t idx , double ang ) {
-	assert(0 <= idx and idx < size() );
+	
+	assert ( 0 <= idx and idx < size() );
+
 	return [ = , idx , ang ] ( size_t index ) {
 		if( ( index >> idx ) & 1 ) {
-			buffer [ index ] = data [ index ] * std :: exp ( std :: complex < double > (0, 1) * ang);
+			buffer [ index ] = data [ index ] * std :: exp ( std :: complex < double > ( 0 , 1 ) * ang );
 		} else {
 			buffer [ index ] = data [ index ];
 		}
@@ -557,8 +578,8 @@ void Quantum::phaseFlip ( void ) {
 void Quantum::phaseFlip ( size_t qubit_idx ) {
 	phaseShift ( qubit_idx , M_PI );	
 }
-void Quantum::phaseFlip ( std :: vector < size_t > qubit_idx_list ) {
-	phaseShift ( qubit_idx_list , M_PI );
+void Quantum::phaseFlip ( std :: vector < size_t > qubit_indices ) {
+	phaseShift ( qubit_indices , M_PI );
 }
 template < typename... Args > 
 void Quantum::phaseFlip ( size_t qubit_idx , Args... args ) {
@@ -586,7 +607,9 @@ void Quantum::setPhase ( std :: vector < std :: pair < size_t, std :: complex < 
 // -- begin controlled function
 // controlled gate with hashed index
 void Quantum::controlled ( size_t hashed , ControlledFunc func ) {
+
 	assert ( 0 <= hashed and hashed < data.size() );
+
 	std :: fill ( buffer.begin() , buffer.end() , 0 );
 	for ( size_t index = 0 ; index < data.size() ; index++ ) {
 		if ( ( index & hashed ) == hashed ) {
@@ -599,13 +622,13 @@ void Quantum::controlled ( size_t hashed , ControlledFunc func ) {
 }
 
 // variadic version of controlled gate with hashed index
-void Quantum::controlled ( size_t hashed , ControlledFunc func , size_t index) {
-	controlled ( hashed ^ (1 << index), func);
+void Quantum::controlled ( size_t hashed , ControlledFunc func , size_t index ) {
+	controlled ( hashed ^ ( 1u << index ) , func );
 }
 template < typename... Args > 
-void Quantum::controlled ( size_t hashed , ControlledFunc func , size_t index, Args... args) {
-	assert(0 <= index and index < size() );
-	controlled ( hashed ^ (1 << index), func , args... );
+void Quantum::controlled ( size_t hashed , ControlledFunc func , size_t index, Args... args ) {
+	assert ( 0 <= index and index < size() );
+	controlled ( hashed ^ ( 1u << index ) , func , args... );
 }
 
 
@@ -626,7 +649,7 @@ void Quantum::controlled ( ControlledFunc func , std :: vector < size_t > index_
 
 	size_t hashed = 0;
 	for ( size_t index : index_list ) {
-		assert(0 <= index and index < size() );
+		assert ( 0 <= index and index < size() );
 		hashed ^= 1u << index;
 	}
 
@@ -637,11 +660,14 @@ void Quantum::controlled ( ControlledFunc func , std :: vector < size_t > index_
 // -- begin not function
 // not function change qubit from |0> to |1>
 void Quantum::Not ( size_t idx ) {
-	assert(0 <= idx and idx < size() );
+
+	assert ( 0 <= idx and idx < size() );
+
 	std :: fill ( buffer.begin() , buffer.end() , 0 );
 	for ( size_t index = 0 ; index < data.size() ; index++ ) {
 		buffer [ index ^ ( 1u << idx ) ] = data [ index ];
 	}
+
 	std :: copy ( buffer.begin() , buffer.end() , data.begin() );
 }
 
@@ -690,21 +716,21 @@ void Quantum::QFT ( void ) {
 }
 
 // QFT with given index vector
-void Quantum::QFT ( std::vector < size_t > idx_list ) {
+void Quantum::QFT ( std :: vector < size_t > indices ) {
 
-	for ( size_t id : idx_list ) {
-		assert( (0 <= id and id < size() , " index out of bound " ) );
+	for ( size_t id : indices ) {
+		assert ( (0 <= id and id < size() , " index out of bound " ) );
 	}
 	
-	for ( size_t i = 0 ; i < idx_list.size() ; i++ ) {
-		hadamard ( idx_list[i] ) ;
-		for ( size_t j = i+1 ; j < idx_list.size() ; j++ ) {
-			controlled ( phaseShiftFunc ( idx_list[i] , 2.0f * M_PI / pow ( 2.0f , j-i+1 ) ) , idx_list[j] );
+	for ( size_t i = 0 ; i < indices.size() ; i++ ) {
+		hadamard ( indices[i] ) ;
+		for ( size_t j = i+1 ; j < indices.size() ; j++ ) {
+			controlled ( phaseShiftFunc ( indices[i] , 2.0f * M_PI / pow ( 2.0f , j-i+1 ) ) , indices[j] );
 		}
 	}
 
-	for ( size_t i = 0 , j = idx_list.size() - 1u ; i < j ; i++ , j-- ) {
-		swap ( idx_list[i] , idx_list[j] );
+	for ( size_t i = 0 , j = indices.size() - 1u ; i < j ; i++ , j-- ) {
+		swap ( indices[i] , indices[j] );
 	}
 
 }
@@ -712,7 +738,7 @@ void Quantum::QFT ( std::vector < size_t > idx_list ) {
 // QFT with a given range of indices
 void Quantum::QFT ( size_t l , size_t r ) {
 
-	assert( ( 0 <= l and l <= r and r < size() , " index out of bound " ) );
+	assert ( ( 0 <= l and l <= r and r < size() , " index out of bound " ) );
 
 	for ( size_t i = l ; i <= r ; i++ ) {
 		hadamard ( i );
